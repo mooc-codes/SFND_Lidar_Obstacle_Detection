@@ -34,13 +34,15 @@ void initCamera(CameraAngle setAngle, pcl::visualization::PCLVisualizer::Ptr& vi
 
 void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer, ProcessPointClouds<pcl::PointXYZI>* pointProcessor, pcl::PointCloud<pcl::PointXYZI>::Ptr inputCloud)
 {
+    
     // Downsample and region limit the input cloud
-
+    pointProcessor->FilterCloud(inputCloud, 0.3, Eigen::Vector4f(-10, -5, -2, 1), Eigen::Vector4f(30, 80, 1, 1));
     // segment the cloud into ground plane and obstacles
 
     // Cluster the obstacles
 
     // render the ground and obstacles
+    renderPointCloud(viewer, inputCloud, "Incoming Cloud");
 }
 
 
@@ -53,9 +55,25 @@ int main (int argc, char** argv)
     CameraAngle setAngle = XY;
     initCamera(setAngle, viewer);
 
-    cityBlock(viewer);
+    pcl::PointCloud<pcl::PointXYZI>::Ptr inputCloud;
+    ProcessPointClouds<pcl::PointXYZI>* pointProcessor = new ProcessPointClouds<pcl::PointXYZI>();
+    std::vector<boost::filesystem::path> pcdFiles = pointProcessor->streamPcd("../src/sensors/data/pcd/data_1");
+    auto fileName = pcdFiles.begin();
+
     while (!viewer->wasStopped ())
     {
+        viewer->removeAllPointClouds();
+        viewer->removeAllShapes();
+
+        inputCloud = pointProcessor->loadPcd((*fileName).string());
+        cityBlock(viewer, pointProcessor, inputCloud);
+
+        ++fileName;
+        if (fileName == pcdFiles.end())
+        {
+            fileName = pcdFiles.begin();
+        }
+        
         viewer->spinOnce ();
     } 
 }

@@ -60,7 +60,7 @@ typename pcl::PointCloud<PointT>::Ptr ProcessPointClouds<PointT>::FilterCloud(ty
 
     auto endTime = std::chrono::steady_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-    std::cout << "filtering took " << elapsedTime.count() << " milliseconds" << std::endl;
+    //std::cout << "filtering took " << elapsedTime.count() << " milliseconds" << std::endl;
 
     return cloud;
 
@@ -71,8 +71,8 @@ template<typename PointT>
 std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::SeparateClouds(pcl::PointIndices::Ptr inliers, typename pcl::PointCloud<PointT>::Ptr cloud) 
 {
  
-    pcl::PointCloud<PointT>::Ptr ground = new pcl::PointCloud<PointT>();
-    pcl::PointCloud<PointT>::Ptr obstacles = new pcl::PointCloud<PointT>();
+    typename pcl::PointCloud<PointT>::Ptr ground = new pcl::PointCloud<PointT>();
+    typename pcl::PointCloud<PointT>::Ptr obstacles = new pcl::PointCloud<PointT>();
     
     for (int index: inliers->indices)
     {
@@ -84,7 +84,7 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
     extract.setNegative(true);
     extract.filter(*obstacles);
 
-    std::pair<pcl::PointCloud<PointT>::Ptr, pcl::PointCloud<PointT>::Ptr> segResult(obstacles, ground);
+    std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> segResult(obstacles, ground);
     return segResult;
 }
 
@@ -175,7 +175,7 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
     std::cout << "plane segmentation took " << elapsedTime.count() << " milliseconds" << std::endl;
 
-    std::pair<pcl::PointCloud<PointT>::Ptr, pcl::PointCloud<PointT>::Ptr> segResult = SeparateClouds(inliers,cloud);
+    std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> segResult = SeparateClouds(inliers,cloud);
     return segResult;
 }
 
@@ -187,9 +187,9 @@ std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::C
     // Time clustering process
     auto startTime = std::chrono::steady_clock::now();
 
-    std::vector<pcl::PointCloud<PointT>::Ptr> clusters;
+    std::vector<typename pcl::PointCloud<PointT>::Ptr> clusters;
 
-    pcl::search::KdTree<PointT>::Ptr kdTree = new pcl::search::KdTree<PointT>();
+    typename pcl::search::KdTree<PointT>::Ptr kdTree = new pcl::search::KdTree<PointT>();
     kdTree->setInputCloud(cloud);
 
     std::vector<pcl::PointIndices> clusteredIndices;
@@ -203,7 +203,7 @@ std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::C
 
     for(auto cluster: clusteredIndices)
     {
-        pcl::PointCloud<PointT>::Ptr cluster_cloud (new pcl::PointCloud<PointT>);
+        typename pcl::PointCloud<PointT>::Ptr cluster_cloud (new pcl::PointCloud<PointT>);
 
         for (auto idx: cluster.indices)
         {
@@ -263,7 +263,7 @@ typename pcl::PointCloud<PointT>::Ptr ProcessPointClouds<PointT>::loadPcd(std::s
     {
         PCL_ERROR ("Couldn't read file \n");
     }
-    std::cerr << "Loaded " << cloud->points.size () << " data points from "+file << std::endl;
+    //std::cerr << "Loaded " << cloud->points.size () << " data points from "+file << std::endl;
 
     return cloud;
 }
