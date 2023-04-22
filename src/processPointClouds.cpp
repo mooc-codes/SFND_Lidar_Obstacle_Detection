@@ -2,6 +2,8 @@
 
 #include "processPointClouds.h"
 #include <unordered_set>
+#include "utils/segment.h"
+#include "utils/cluster.h"
 
 //constructor:
 template<typename PointT>
@@ -60,7 +62,7 @@ typename pcl::PointCloud<PointT>::Ptr ProcessPointClouds<PointT>::FilterCloud(ty
 
     auto endTime = std::chrono::steady_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-    std::cout << "filtering took " << elapsedTime.count() << " milliseconds" << std::endl;
+    //std::cout << "filtering took " << elapsedTime.count() << " milliseconds" << std::endl;
 
     return cloud;
 
@@ -70,117 +72,37 @@ typename pcl::PointCloud<PointT>::Ptr ProcessPointClouds<PointT>::FilterCloud(ty
 template<typename PointT>
 std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::SeparateClouds(pcl::PointIndices::Ptr inliers, typename pcl::PointCloud<PointT>::Ptr cloud) 
 {
-  // TODO: Create two new point clouds, one cloud with obstacles and other with segmented plane
-    typename pcl::PointCloud<PointT>::Ptr ground (new pcl::PointCloud<PointT>());
-    typename pcl::PointCloud<PointT>::Ptr obstacles (new pcl::PointCloud<PointT>());
-    pcl::ExtractIndices<PointT> extract;
-    // extract.setInputCloud(cloud);
-    // extract.setIndices(inliers);
-    // extract.setNegative(false);
-    // extract.filter(*ground);
+ 
+    typename pcl::PointCloud<PointT>::Ptr ground {new pcl::PointCloud<PointT>};
+    typename pcl::PointCloud<PointT>::Ptr obstacles {new pcl::PointCloud<PointT>};
+    
     for (int index: inliers->indices)
     {
         ground->points.push_back(cloud->points[index]);
     }
-
+    pcl::ExtractIndices<PointT> extract;
     extract.setInputCloud(cloud);
     extract.setIndices(inliers);
     extract.setNegative(true);
     extract.filter(*obstacles);
 
-
     std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> segResult(obstacles, ground);
     return segResult;
 }
 
-template<typename PointT>
-pcl::PointIndices::Ptr ProcessPointClouds<PointT>::RansacPlane(typename pcl::PointCloud<PointT>::Ptr cloud, int maxIterations, float distanceTol)
-{
-	pcl::PointIndices::Ptr inlierIndices {new pcl::PointIndices};
-    std::unordered_set<int> inliersResult;
-	PointT p1, p2, p3, p4;
-	float A, B, C, D, dist;
-	srand(time(NULL));
-	std::unordered_set<int>::iterator itr;
-	auto setPoint = [&](int idx, PointT& point)
-					{ 
-						point = cloud->points[idx];
-					};
-
-	auto compute_dist = [&](PointT p4)
-						{
-										A = ((p2.y - p1.y) * (p3.z - p1.z)) - ((p2.z - p1.z) * (p3.y - p1.y));
-								B = ((p2.z - p1.z) * (p3.x - p1.x)) - ((p2.x - p1.x) * (p3.z - p1.z));
-								C = ((p2.x - p1.x) * (p3.y - p1.y)) - ((p2.y - p1.y) * (p3.x - p1.x));
-								D = -1 * ( (A * p1.x) + (B * p1.y) + (C * p1.z));
-
-								auto numerator = fabs((A * p4.x) + (B * p4.y) + (C * p4.z) + D);
-								auto denom = sqrt((A * A) + (B * B) + (C * C));
-								return numerator/denom;
-						};
-
-	while(maxIterations)
-	{
-
-		std::unordered_set<int> inliers;
-		while (inliers.size() < 3)
-		{
-			inliers.insert(rand() % cloud->points.size());
-		}
-		
-
-		itr = inliers.begin();
-		setPoint(*itr, p1);
-		itr++;
-		setPoint(*itr, p2);
-		itr++;
-		setPoint(*itr, p3);
-		// std::cout<<p1.x<<p2.x<<p3.x<<std::endl;
-		
-		for(int idx = 0; idx < cloud->points.size(); idx++)
-		{
-
-			if(inliers.count(idx) > 0)
-			{
-				continue;
-			}
-			setPoint(idx, p4);
-
-
-			dist = compute_dist(p4);
-			if (dist <= distanceTol)
-			{
-				inliers.insert(idx);
-			}
-		}
-
-		if (inliers.size() > inliersResult.size())
-		{
-			inliersResult = inliers;
-		}
-		maxIterations--;
-	}
-	
-    for (auto index: inliersResult)
-    {
-        inlierIndices->indices.emplace_back(index);
-    }
-    return inlierIndices;
-}
 
 template<typename PointT>
 std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::SegmentPlane(typename pcl::PointCloud<PointT>::Ptr cloud, int maxIterations, float distanceThreshold)
 {
     // Time segmentation process
     auto startTime = std::chrono::steady_clock::now();
-	pcl::PointIndices::Ptr inliers {new pcl::PointIndices};
-    // TODO:: Fill in this function to find inliers for the cloud.
 
-    inliers = RansacPlane(cloud, maxIterations, distanceThreshold);
+	pcl::PointIndices::Ptr inliers {new pcl::PointIndices};
+    inliers = RansacPlane<PointT>(cloud, maxIterations, distanceThreshold);
 
     auto endTime = std::chrono::steady_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-    std::cout << "plane segmentation took " << elapsedTime.count() << " milliseconds" << std::endl;
+    // std::cout << "plane segmentation took " << elapsedTime.count() << " milliseconds" << std::endl;
 
     std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> segResult = SeparateClouds(inliers,cloud);
     return segResult;
@@ -194,43 +116,45 @@ std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::C
     // Time clustering process
     auto startTime = std::chrono::steady_clock::now();
 
-    std::vector<typename pcl::PointCloud<PointT>::Ptr> clusters;
-
-    // TODO:: Fill in the function to perform euclidean clustering to group detected obstacles
-
-    typename pcl::search::KdTree<PointT>::Ptr kdTree (new pcl::search::KdTree<PointT>);
-    kdTree->setInputCloud(cloud);
-
-    std::vector<pcl::PointIndices> clusteredIndices;
-    typename pcl::EuclideanClusterExtraction<PointT> clusterExtraction;
-    clusterExtraction.setClusterTolerance(clusterTolerance); //cm
-    clusterExtraction.setMinClusterSize(minSize);
-    clusterExtraction.setMaxClusterSize(maxSize);
-    clusterExtraction.setSearchMethod(kdTree);
-    clusterExtraction.setInputCloud(cloud);
-    clusterExtraction.extract(clusteredIndices);
-
-    for(auto cluster: clusteredIndices)
+    // Convert point cloud into std::vector<std::vector<float>>
+    std::vector<std::vector<float>> points;
+    for( PointT point: cloud->points)
     {
-        typename pcl::PointCloud<PointT>::Ptr cluster_cloud (new pcl::PointCloud<PointT>);
-
-        for (auto idx: cluster.indices)
-        {
-            cluster_cloud->points.push_back(cloud->points[idx]);
-        }
-        cluster_cloud->width = cluster_cloud->size();
-        cluster_cloud->height = 1;
-        cluster_cloud->is_dense = true;
-        clusters.push_back(cluster_cloud);
-
+        points.push_back(std::vector<float>{point.x, point.y, point.z});
     }
 
+    // Make Kdtree and insert the points
+    KdTree* tree = new KdTree();
+    for(int i=0; i < points.size(); i++)
+    {
+        tree->insert(points[i], i);
+    }
 
+    // Do euclidean clustering to get the obstacle cluster indices
+    auto clusterIdxs = EuclideanCluster(points, tree, clusterTolerance, minSize, maxSize);
+   
+    // Make indices to point cloud
+    std::vector<typename pcl::PointCloud<PointT>::Ptr> obstacles;
+    for (auto cluster: clusterIdxs)
+    {
+        typename pcl::PointCloud<PointT>::Ptr obstacle{new pcl::PointCloud<PointT>};
+        for (int idx: cluster)
+        {
+            PointT p;
+            p.x = points[idx][0];
+            p.y = points[idx][1];
+            p.z = points[idx][2];
+            obstacle->points.push_back(p);
+        }
+        obstacles.push_back(obstacle);
+    }
+
+    
     auto endTime = std::chrono::steady_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-    std::cout << "clustering took " << elapsedTime.count() << " milliseconds and found " << clusters.size() << " clusters" << std::endl;
+    // std::cout << "clustering took " << elapsedTime.count() << " milliseconds and found " << clusters.size() << " clusters" << std::endl;
 
-    return clusters;
+    return obstacles;
 }
 
 
@@ -272,7 +196,7 @@ typename pcl::PointCloud<PointT>::Ptr ProcessPointClouds<PointT>::loadPcd(std::s
     {
         PCL_ERROR ("Couldn't read file \n");
     }
-    std::cerr << "Loaded " << cloud->points.size () << " data points from "+file << std::endl;
+    //std::cerr << "Loaded " << cloud->points.size () << " data points from "+file << std::endl;
 
     return cloud;
 }
