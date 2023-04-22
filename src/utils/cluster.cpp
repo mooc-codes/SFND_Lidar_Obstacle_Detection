@@ -16,7 +16,7 @@ void AddNeighbors(int i, KdTree* tree, float distanceTol, std::vector<int>& clus
 }
 
 
-std::vector<std::vector<int>> EuclideanCluster(const std::vector<std::vector<float>>& points, KdTree* tree, float distanceTol)
+std::vector<std::vector<int>> EuclideanCluster(const std::vector<std::vector<float>>& points, KdTree* tree, float distanceTol, int minSize, int maxSize)
 {
 
 	std::vector<std::vector<int>> clusters;
@@ -33,11 +33,11 @@ std::vector<std::vector<int>> EuclideanCluster(const std::vector<std::vector<flo
 
 		std::vector<int> cluster;
 		AddNeighbors(i, tree, distanceTol, cluster, isProcessed, points);
-		clusters.push_back(cluster);
+		if (cluster.size() >= minSize && cluster.size() <= maxSize)
+			clusters.push_back(cluster);
 		i++;
 	}
 	return clusters;
 
 }
 
-#endif

@@ -122,17 +122,17 @@ std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::C
     {
         points.push_back(std::vector<float>{point.x, point.y, point.z});
     }
-
+    std::cout << "PCL to std::vector"<<std::endl;
     // Make Kdtree and insert the points
-    KdTree* tree;
+    KdTree* tree = new KdTree();
     for(int i=0; i < points.size(); i++)
     {
         tree->insert(points[i], i);
     }
-
+    std::cout << "KDTree Created "<<std::endl;
     // Do euclidean clustering to get the obstacle cluster indices
-    // auto clusterIdxs = EuclideanCluster(points, tree, clusterTolerance);
-    
+    auto clusterIdxs = EuclideanCluster(points, tree, clusterTolerance, minSize, maxSize);
+    std::cout << "Clusters : "<< clusterIdxs.size()<<std::endl;
     // Make indices to point cloud
     std::vector<typename pcl::PointCloud<PointT>::Ptr> clusters;
 

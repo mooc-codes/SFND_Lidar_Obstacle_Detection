@@ -1,5 +1,6 @@
 #include <vector>
-
+#include <cstddef>
+#include <math.h>
 // Structure to represent node of kd tree
 struct Node
 {
