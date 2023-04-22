@@ -1,6 +1,4 @@
-
 #include <vector>
-
 
 // Structure to represent node of kd tree
 struct Node

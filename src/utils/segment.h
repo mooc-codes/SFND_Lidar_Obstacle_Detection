@@ -1,8 +1,9 @@
-#ifndef SEG_PCL_COMMON
-#define SEG_PCL_COMMON
+#ifndef SEGMENT_H
+#define SEGMENT_H
+
 #include <pcl/common/common.h>
-#endif
 #include <unordered_set>
+
 template<typename PointT>
 pcl::PointIndices::Ptr RansacPlane(typename pcl::PointCloud<PointT>::Ptr cloud, int maxIterations, float distanceTol)
 {
@@ -76,3 +77,4 @@ pcl::PointIndices::Ptr RansacPlane(typename pcl::PointCloud<PointT>::Ptr cloud, 
     }
     return inlierIndices;
 }
+#endif

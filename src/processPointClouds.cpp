@@ -1,10 +1,9 @@
 // PCL lib Functions for processing point clouds 
 
 #include "processPointClouds.h"
-#include "utils/segment.h"
-#include "utils/kdtree.h"
-// #include "utils/cluster.h"
 #include <unordered_set>
+#include "utils/segment.h"
+#include "utils/cluster.h"
 
 //constructor:
 template<typename PointT>
@@ -121,15 +120,24 @@ std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::C
     std::vector<std::vector<float>> points;
     for( PointT point: cloud->points)
     {
-        points.push_back(std::vector<float>(point.x, point.y, point.z));
+        points.push_back(std::vector<float>{point.x, point.y, point.z});
     }
 
     // Make Kdtree and insert the points
+    KdTree* tree;
+    for(int i=0; i < points.size(); i++)
+    {
+        tree->insert(points[i], i);
+    }
 
     // Do euclidean clustering to get the obstacle cluster indices
-
+    // auto clusterIdxs = EuclideanCluster(points, tree, clusterTolerance);
+    
     // Make indices to point cloud
+    std::vector<typename pcl::PointCloud<PointT>::Ptr> clusters;
 
+
+    
     auto endTime = std::chrono::steady_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
     // std::cout << "clustering took " << elapsedTime.count() << " milliseconds and found " << clusters.size() << " clusters" << std::endl;
