@@ -1,8 +1,5 @@
-/* \author Aaron Brown */
-// Quiz on implementing kd tree
 
-#include "../../render/render.h"
-
+#include <vector>
 
 // Structure to represent node of kd tree
 struct Node
@@ -49,14 +46,8 @@ struct KdTree
 
 	void insert(std::vector<float> point, int id)
 	{
-		// TODO: Fill in this function to insert a new point into the tree
-		// the function should create a new node and place correctly with in the root 
-			// Node* current = root;
-
-		insertNode(&root, 0, point, id);
-		
+		insertNode(&root, 0, point, id);		
 	}
-
 
 	void search(std::vector<int>& ids, std::vector<float>& target, float distanceTol, Node* node, int depth)
 	{
@@ -94,7 +85,6 @@ struct KdTree
 		}
 	}
 
-	// return a list of point ids in the tree that are within distance of target
 	std::vector<int> search(std::vector<float> target, float distanceTol)
 	{
 		std::vector<int> ids;
@@ -102,9 +92,4 @@ struct KdTree
 		return ids;
 	}
 	
-
 };
-
-
-
-

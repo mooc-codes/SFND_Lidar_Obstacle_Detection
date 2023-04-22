@@ -66,7 +66,7 @@ int main (int argc, char** argv)
 
     pcl::PointCloud<pcl::PointXYZI>::Ptr inputCloud;
     ProcessPointClouds<pcl::PointXYZI>* pointProcessor = new ProcessPointClouds<pcl::PointXYZI>();
-    std::vector<boost::filesystem::path> pcdFiles = pointProcessor->streamPcd("../src/sensors/data/pcd/data_1");
+    std::vector<boost::filesystem::path> pcdFiles = pointProcessor->streamPcd("../src/sensors/data/pcd/data_2");
     auto fileName = pcdFiles.begin();
 
     while (!viewer->wasStopped ())
