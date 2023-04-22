@@ -36,13 +36,22 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer, ProcessPointCloud
 {
     
     // Downsample and region limit the input cloud
-    pointProcessor->FilterCloud(inputCloud, 0.3, Eigen::Vector4f(-10, -5, -2, 1), Eigen::Vector4f(30, 80, 1, 1));
+    pointProcessor->FilterCloud(inputCloud, 0.3, Eigen::Vector4f(-10, -5, -2, 1), Eigen::Vector4f(30, 5, 1, 1));
     // segment the cloud into ground plane and obstacles
-
+    auto segmentedCloud = pointProcessor->SegmentPlane(inputCloud, 25, 0.3);
     // Cluster the obstacles
-
-    // render the ground and obstacles
-    renderPointCloud(viewer, inputCloud, "Incoming Cloud");
+    auto obstacles = pointProcessor->Clustering(segmentedCloud.first, 0.53, 20, 500);
+    int clusterId = 0;
+    
+    for(auto cluster : obstacles)
+    {
+        renderPointCloud(viewer,cluster,"obstCloud"+std::to_string(clusterId),Color(1,0,0));
+        Box box = pointProcessor->BoundingBox(cluster);
+        renderBox(viewer,box,clusterId);
+        ++clusterId;
+    }
+    // render the ground
+    renderPointCloud(viewer, segmentedCloud.second, "Incoming Cloud", Color(0, 1, 0));
 }
 
 

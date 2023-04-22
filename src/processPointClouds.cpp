@@ -71,8 +71,8 @@ template<typename PointT>
 std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::SeparateClouds(pcl::PointIndices::Ptr inliers, typename pcl::PointCloud<PointT>::Ptr cloud) 
 {
  
-    typename pcl::PointCloud<PointT>::Ptr ground = new pcl::PointCloud<PointT>();
-    typename pcl::PointCloud<PointT>::Ptr obstacles = new pcl::PointCloud<PointT>();
+    typename pcl::PointCloud<PointT>::Ptr ground {new pcl::PointCloud<PointT>};
+    typename pcl::PointCloud<PointT>::Ptr obstacles {new pcl::PointCloud<PointT>};
     
     for (int index: inliers->indices)
     {
@@ -168,12 +168,12 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
     // Time segmentation process
     auto startTime = std::chrono::steady_clock::now();
 
-	pcl::PointIndices::Ptr inliers  = new pcl::PointIndices();;
+	pcl::PointIndices::Ptr inliers {new pcl::PointIndices};
     inliers = RansacPlane(cloud, maxIterations, distanceThreshold);
 
     auto endTime = std::chrono::steady_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-    std::cout << "plane segmentation took " << elapsedTime.count() << " milliseconds" << std::endl;
+    // std::cout << "plane segmentation took " << elapsedTime.count() << " milliseconds" << std::endl;
 
     std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> segResult = SeparateClouds(inliers,cloud);
     return segResult;
@@ -189,7 +189,7 @@ std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::C
 
     std::vector<typename pcl::PointCloud<PointT>::Ptr> clusters;
 
-    typename pcl::search::KdTree<PointT>::Ptr kdTree = new pcl::search::KdTree<PointT>();
+    typename pcl::search::KdTree<PointT>::Ptr kdTree {new pcl::search::KdTree<PointT>};
     kdTree->setInputCloud(cloud);
 
     std::vector<pcl::PointIndices> clusteredIndices;
@@ -219,7 +219,7 @@ std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::C
 
     auto endTime = std::chrono::steady_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-    std::cout << "clustering took " << elapsedTime.count() << " milliseconds and found " << clusters.size() << " clusters" << std::endl;
+    // std::cout << "clustering took " << elapsedTime.count() << " milliseconds and found " << clusters.size() << " clusters" << std::endl;
 
     return clusters;
 }
