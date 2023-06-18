@@ -40,7 +40,7 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer, ProcessPointCloud
     // segment the cloud into ground plane and obstacles
     auto segmentedCloud = pointProcessor->SegmentPlane(inputCloud, 25, 0.3);
     // Cluster the obstacles
-    auto obstacles = pointProcessor->Clustering(segmentedCloud.first, 0.53, 20, 500);
+    auto obstacles = pointProcessor->Clustering(segmentedCloud.first, 0.4, 10, 150);
     int clusterId = 0;
     
     for(auto cluster : obstacles)
@@ -66,7 +66,7 @@ int main (int argc, char** argv)
 
     pcl::PointCloud<pcl::PointXYZI>::Ptr inputCloud;
     ProcessPointClouds<pcl::PointXYZI>* pointProcessor = new ProcessPointClouds<pcl::PointXYZI>();
-    std::vector<boost::filesystem::path> pcdFiles = pointProcessor->streamPcd("../src/sensors/data/pcd/data_2");
+    std::vector<boost::filesystem::path> pcdFiles = pointProcessor->streamPcd("../src/sensors/data/pcd/data_1");
     auto fileName = pcdFiles.begin();
 
     while (!viewer->wasStopped ())
